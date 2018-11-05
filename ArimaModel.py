@@ -34,7 +34,7 @@ from statsmodels.tsa.arima_model import ARIMA
 def retrive():
     a=[]
     i=0
-    for file in os.listdir('../../dev/experiment/data/%s.csv'):
+    for file in os.listdir('data/data/'):
         if file.endswith(".csv"):
             filename = file
             a.append(filename)
@@ -51,7 +51,7 @@ def load_data(vettore,leng):
         day = vettore[x]
         #print(vettore[x])
         if contr == True:
-            series_temp = read_csv('../../dev/experiment/data/%s.csv'%day, header=0,
+            series_temp = read_csv('data/data/%s.csv'%day, header=0,
                           parse_dates={'date_time' :['Day','Hour','Minute']}, index_col = 'date_time',
                           squeeze=True, date_parser=parser)
             series_temp = series_temp[series_temp['Byte_count'] != 0]
@@ -62,7 +62,7 @@ def load_data(vettore,leng):
             counter = counter + len(series_temp)
             
         else:
-            series = read_csv('../../dev/experiment/data/%s.csv'%day, header=0,
+            series = read_csv('data/data/%s.csv'%day, header=0,
                           parse_dates={'date_time' :['Day','Hour','Minute']}, index_col = 'date_time',
                           squeeze=True, date_parser=parser)
             counter = len(series)
@@ -80,7 +80,7 @@ vet,leng = retrive()
 vet = natsorted(vet, key=lambda y: y.lower())
 vet
 series = load_data(vet,leng)
-test_samples = 20000
+test_samples = 600
 series =  series[['Byte_count','Request_count']]
 series = series.Request_count
 ser_ind = series
@@ -90,13 +90,14 @@ test = series[-test_samples:]
 history = [x for x in train]
 predictions = list()
 for t in range(len(test)):
-	model = ARIMA(history, order=(5,1,0))
+	model = ARIMA(history, order=(60,1,0))
 	model_fit = model.fit(disp=0)
 	output = model_fit.forecast()
 	yhat = output[0]
 	predictions.append(yhat)
 	obs = test[t]
 	history.append(obs)
+	print("sample %d"%t)
 	print('predicted=%f, expected=%f' % (yhat, obs))
 s = []
 for x in range(0,len(predictions)):
@@ -112,7 +113,7 @@ pyplot.title('Arima Vs Ground Truth Forecast', weight='bold',fontsize = 20)
 pyplot.legend(loc='upper left', fancybox=True, fontsize='large', framealpha=0.5) 
 pyplot.savefig('plots/ArimaVSthrut.png')
 pyplot.show()
-idx = ser_ind.tail(20000)
+idx = ser_ind.tail(600)
 idx = idx.index
 truth_prediction = pd.DataFrame(index=idx)
 arima_prediction = pd.DataFrame( index=idx)
@@ -121,8 +122,8 @@ arima_prediction = pd.DataFrame( index=idx)
 truth_prediction['t']=test[:]
 arima_prediction['t']=s[:]
      
-arima_prediction.to_csv('arima_prediction.csv', sep='\t', encoding='utf-8')
-truth_prediction.to_csv('test_prediction.csv', sep='\t', encoding='utf-8')
+arima_prediction.to_csv('arima_prediction600tst_lg5.csv', sep='\t', encoding='utf-8')
+truth_prediction.to_csv('test_prediction600_lg5.csv', sep='\t', encoding='utf-8')
 time_end = time.time()
 duration = time_end-time_start
 rows = ['Start','End','Duration']
@@ -130,7 +131,7 @@ timedf= DataFrame(columns=['Time'],index=rows)
 timedf.iloc[0]=time_start
 timedf.iloc[1]=time_end
 timedf.iloc[2]=duration
-timedf.to_csv('Duration.csv', sep='\t',encoding='utf-8')
+timedf.to_csv('Duration60Lag.csv', sep='\t',encoding='utf-8')
 
 
 # In[ ]:
