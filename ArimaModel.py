@@ -71,6 +71,7 @@ def load_data(vettore,leng):
     return series
 
 
+<<<<<<< HEAD
 # In[20]:
 
 
@@ -141,6 +142,69 @@ for x in range(1,6):
         timedf.iloc[1]=time_end
         timedf.iloc[2]=duration
         timedf.to_csv('Duration_ARIMA_600_exp%d.csv'%exp, sep='\t',encoding='utf-8')
+=======
+# In[ ]:
+
+
+
+time_start = time.time()
+vet,leng = retrive()
+vet = natsorted(vet, key=lambda y: y.lower())
+vet
+series = load_data(vet,leng)
+test_samples = 600
+series =  series[['Byte_count','Request_count']]
+series = series.Request_count
+ser_ind = series
+series = series.values
+train = series[:-test_samples]
+test = series[-test_samples:]
+history = [x for x in train]
+predictions = list()
+for t in range(len(test)):
+	model = ARIMA(history, order=(60,1,0))
+	model_fit = model.fit(disp=0)
+	output = model_fit.forecast()
+	yhat = output[0]
+	predictions.append(yhat)
+	obs = test[t]
+	history.append(obs)
+	print("sample %d"%t)
+	print('predicted=%f, expected=%f' % (yhat, obs))
+s = []
+for x in range(0,len(predictions)):
+    s = numpy.append(s,predictions[x])
+error = sqrt(mean_squared_error(test, s))
+print('Test RMSE: %.3f' % error)
+pyplot.rcParams['figure.figsize'] = (12,9)
+pyplot.plot(test)
+pyplot.plot(predictions, color='red')
+pyplot.xlabel('Minutes',fontsize = 14)
+pyplot.ylabel('Request Count',fontsize = 14)
+pyplot.title('Arima Vs Ground Truth Forecast', weight='bold',fontsize = 20)
+pyplot.legend(loc='upper left', fancybox=True, fontsize='large', framealpha=0.5) 
+pyplot.savefig('plots/ArimaVSthrut.png')
+pyplot.show()
+idx = ser_ind.tail(600)
+idx = idx.index
+truth_prediction = pd.DataFrame(index=idx)
+arima_prediction = pd.DataFrame( index=idx)
+
+
+truth_prediction['t']=test[:]
+arima_prediction['t']=s[:]
+     
+arima_prediction.to_csv('arima_prediction600tst_lg5.csv', sep='\t', encoding='utf-8')
+truth_prediction.to_csv('test_prediction600_lg5.csv', sep='\t', encoding='utf-8')
+time_end = time.time()
+duration = time_end-time_start
+rows = ['Start','End','Duration']
+timedf= DataFrame(columns=['Time'],index=rows)
+timedf.iloc[0]=time_start
+timedf.iloc[1]=time_end
+timedf.iloc[2]=duration
+timedf.to_csv('Duration60Lag.csv', sep='\t',encoding='utf-8')
+>>>>>>> 6333b44bede242e707e8a772ab40d292d4619f87
 
 
 # In[ ]:
